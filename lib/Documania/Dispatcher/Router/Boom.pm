@@ -14,7 +14,7 @@ sub analyze_routes {
         my ($self, $method, $path, $stuff) = @_;
         if ($path =~ m{api}) {
             push @$packages, $stuff->[0];
-            push @{$routes->{$stuff->[0]}}, [$method, $path, $stuff];
+            push @{$routes->{$stuff->[0]}}, [$method->[0], $path, $stuff->[1]];
         }
         $orig->(@_);
     };

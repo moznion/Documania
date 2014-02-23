@@ -89,10 +89,10 @@ sub _build_docs {
         my $doc = $self->_parse_package($pkg);
         my @methods;
         for my $point (@{$routes->{$pkg}}) {
-            my ($http_method, $path, $stuff) = @$point;
-            my ($info) = grep { $_->{name} eq $stuff->[1] } @{$doc->{methods}};
+            my ($http_method, $path, $action) = @$point;
+            my ($info) = grep { $_->{name} eq $action } @{$doc->{methods}};
             push @methods, +{
-                http_method => $http_method->[0] eq 'POST' ? 'POST' : 'GET',
+                http_method => $http_method eq 'POST' ? 'POST' : 'GET',
                 path => $path,
                 %$info,
             };
