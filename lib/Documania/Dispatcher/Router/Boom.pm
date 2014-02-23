@@ -19,7 +19,7 @@ sub analyze_routes {
         $orig->(@_);
     };
 
-    eval "require $dispatcher_class"; ## no critic
+    eval "require '$dispatcher_class'"; ## no critic
 
     return ($packages, $routes);
 }
