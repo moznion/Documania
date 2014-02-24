@@ -7,6 +7,7 @@ use Carp ();
 use Encode qw/encode_utf8/;
 use FindBin;
 use Text::Xslate;
+use Documania::Module;
 use Class::Accessor::Lite (
     new => 0,
     rw  => [qw/base_dir template syntax dispatcher_module/],
@@ -86,11 +87,11 @@ sub _build_docs {
     for my $pkg (@{$packages}) {
         next if $seen{$pkg}++;
 
-        my $doc = $self->_parse_package($pkg);
+        my $doc = Documania::Module->new_from_module($pkg, $self->base_dir);
         my @methods;
         for my $point (@{$routes->{$pkg}}) {
             my ($http_method, $path, $action) = @$point;
-            my ($info) = grep { $_->{name} eq $action } @{$doc->{methods}};
+            my ($info) = grep { $_->{name} eq $action } @{$doc->methods};
             push @methods, +{
                 http_method => $http_method =~ /\Apost\Z/i ? 'POST' : 'GET',
                 path => $path,
@@ -99,49 +100,11 @@ sub _build_docs {
         }
         push @built, +{
             name => $pkg,
-            description => $doc->{description},
+            description => $doc->description,
             methods     => \@methods,
         };
     }
     return \@built;
-}
-
-sub _parse_package {
-    my ($self, $module) = @_;
-
-    my $path = $module;
-    $path =~ s!::!/!g;
-    $path = File::Spec->catfile($self->base_dir, "lib/$path.pm"); # TODO
-    open my $fh, '<:encoding(utf8)', $path
-        or next;
-
-    my @comments;
-    my $description;
-    my @methods;
-    while (my $line = <$fh>) {
-        if ($line =~ /^#[ ]*DESCRIPTION\s*:\s*(.*)/) {
-            $description = $1;
-        } elsif ($line =~ /^#(.*)/) {
-            my $m = $1;
-            $m =~ s!\A[ ]!!;
-            push @comments, $m;
-        } elsif ($line =~ /^sub\s+(\S+)/) {
-            my $subname = $1;
-            my $title;
-            for (my $i=0; $i<@comments; $i++) {
-                $title = shift @comments;
-                last if $title;
-            }
-            push @methods, {
-                name    => $subname,
-                title   => $title,
-                comment => join("\n", @comments),
-            };
-        } else {
-            @comments = ();
-        }
-    }
-    return +{ description => $description, methods => \@methods };
 }
 
 1;
