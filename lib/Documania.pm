@@ -92,7 +92,7 @@ sub _build_docs {
             my ($http_method, $path, $action) = @$point;
             my ($info) = grep { $_->{name} eq $action } @{$doc->{methods}};
             push @methods, +{
-                http_method => $http_method eq 'POST' ? 'POST' : 'GET',
+                http_method => $http_method =~ /\Apost\Z/i ? 'POST' : 'GET',
                 path => $path,
                 %$info,
             };
